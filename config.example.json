@@ -1,0 +1,41 @@
+{
+    "version": "1.0",
+    "examples": [
+        {
+            "name": "Integration Test",
+            "type": "integration",
+            "file_path": "./server/some/file.test.ts",
+            "description": "Integration test with database setup"
+        },
+        {
+            "name": "Basic Unit Test",
+            "type": "unit",
+            "file_path": "./server/some/file.test.ts",
+            "description": "Basic unit test for a simple function"
+        }
+    ],
+    "settings": {
+        "default_test_directory": "./server/some/directory",
+        "language": "typescript",
+        "test_runner": "jest"
+    },
+    "context": {
+        "files": [
+            {
+                "path": "./types/interfaces.ts",
+                "description": "Core type definitions and interfaces",
+                "type": "types"
+            },
+            {
+                "path": "./utils/test-helpers.ts",
+                "description": "Common test utilities and helper functions",
+                "type": "utils"
+            },
+            {
+                "path": "./constants/test-data.ts",
+                "description": "Test data constants and fixtures",
+                "type": "constants"
+            }
+        ]
+    }
+}

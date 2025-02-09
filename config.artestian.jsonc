@@ -1,0 +1,56 @@
+{
+    "version": "1.0",
+    "examples": [
+        {
+            "name": "Unit Test",
+            "type": "unit",
+            "file_path": "./pkg/agent/base_test.go",
+            "description": "Unit test for the base agent implementation"
+        },
+        {
+            "name": "Prompt Test",
+            "type": "prompt",
+            "file_path": "./pkg/agent/fix_test_errors_test.go",
+            "description": "Prompt eval implementation"
+        }
+    ],
+    "context": {
+        "files": [
+            {
+                "path": "./types/interfaces.go",
+                "description": "Core interfaces for AI providers, test runners, and language support",
+                "type": "types"
+            },
+            {
+                "path": "./types/structs.go",
+                "description": "Core data structures including TestExample and GenerateTestParams",
+                "type": "types"
+            },
+            {
+                "path": "./pkg/generator/base.go",
+                "description": "Test generator implementation showing key dependencies and structure",
+                "type": "implementation"
+            },
+            {
+                "path": "./pkg/agent/base.go",
+                "description": "AI provider implementation showing how to interact with AI services",
+                "type": "implementation"
+            },
+            {
+                "path": "./pkg/languages/typescript.go",
+                "description": "Example language support implementation for reference",
+                "type": "example"
+            },
+            {
+                "path": "./pkg/config/config.go",
+                "description": "Configuration system implementation for understanding settings and context",
+                "type": "implementation"
+            }
+        ]
+    },
+    "settings": {
+        "default_test_directory": "./pkg",
+        "language": "go",
+        "test_runner": "go test"
+    }
+}
