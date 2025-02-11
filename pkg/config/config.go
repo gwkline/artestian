@@ -30,9 +30,10 @@ type Example struct {
 
 // Settings represents global configuration settings
 type Settings struct {
-	DefaultTestDirectory string `json:"default_test_directory"`
-	Language             string `json:"language"`
-	TestRunner           string `json:"test_runner"`
+	DefaultTestDirectory string   `json:"default_test_directory"`
+	Language             string   `json:"language"`
+	TestRunner           string   `json:"test_runner"`
+	ExcludedDirs         []string `json:"excluded_dirs"`
 }
 
 // Context represents additional files to be used as context for test generation
@@ -242,6 +243,31 @@ func validateConfig(config *Config) error {
 		slog.Warn("no default test directory specified, using current directory")
 	}
 
+	// Validate excluded directories
+	for i, dir := range config.Settings.ExcludedDirs {
+		if dir == "" {
+			return fmt.Errorf("excluded directory at index %d cannot be empty", i)
+		}
+
+		// Strip ./ prefix if present
+		dir = strings.TrimPrefix(dir, "./")
+
+		// Remove trailing /** if present
+		dir = strings.TrimSuffix(dir, "/**")
+
+		// Remove trailing slash if present
+		dir = strings.TrimSuffix(dir, "/")
+
+		fullPath := config.resolveFilePath(dir)
+
+		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+			slog.Warn("excluded directory does not exist", "path", fullPath)
+		}
+
+		// Update the normalized path in the config
+		config.Settings.ExcludedDirs[i] = dir
+	}
+
 	// Language validation
 	if config.Settings.Language != "" {
 		if !IsValidLanguage(config.Settings.Language) {
@@ -340,6 +366,29 @@ func (c *Config) GetRootDir() string {
 		return "."
 	}
 	return c.resolveFilePath(c.Settings.DefaultTestDirectory)
+}
+
+// GetExcludedDirs returns the normalized excluded directory paths
+func (c *Config) GetExcludedDirs() []string {
+	if len(c.Settings.ExcludedDirs) == 0 {
+		return nil
+	}
+
+	// Get the absolute path of the root directory
+	rootDir := c.GetRootDir()
+	excludedDirs := make([]string, len(c.Settings.ExcludedDirs))
+
+	for i, dir := range c.Settings.ExcludedDirs {
+		// If the path starts with ./, use the root directory as base
+		if strings.HasPrefix(dir, "./") {
+			excludedDirs[i] = filepath.Join(rootDir, strings.TrimPrefix(dir, "./"))
+		} else {
+			// For paths without ./, resolve them relative to the config base path
+			excludedDirs[i] = c.resolveFilePath(dir)
+		}
+	}
+
+	return excludedDirs
 }
 
 // LoadContextFiles loads all context files specified in the configuration
