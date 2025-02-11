@@ -2,6 +2,7 @@ package finder
 
 import (
 	"log/slog"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,7 +10,7 @@ import (
 
 func (f *FileFinder) FindNextFile(rootDir string) (string, error) {
 	slog.Debug("starting file search", "rootDir", rootDir)
-	var foundFile string
+	var eligibleFiles []string
 	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			slog.Error("error accessing path", "path", path, "error", err)
@@ -45,11 +46,9 @@ func (f *FileFinder) FindNextFile(rootDir string) (string, error) {
 			return nil
 		}
 
-		// Found a file that needs tests
-		slog.Info("found file needing tests", "path", path)
-		foundFile = path
-		f.visited[path] = true
-		return filepath.SkipAll
+		// Add eligible file to the list
+		eligibleFiles = append(eligibleFiles, path)
+		return nil
 	})
 
 	if err != nil {
@@ -57,10 +56,15 @@ func (f *FileFinder) FindNextFile(rootDir string) (string, error) {
 		return "", err
 	}
 
-	if foundFile == "" {
+	if len(eligibleFiles) == 0 {
 		slog.Info("no files found needing tests")
 		return "", nil
 	}
 
-	return foundFile, nil
+	// Randomly select one of the eligible files
+	selectedFile := eligibleFiles[rand.Intn(len(eligibleFiles))]
+	f.visited[selectedFile] = true
+	slog.Info("randomly selected file for testing", "path", selectedFile)
+
+	return selectedFile, nil
 }
