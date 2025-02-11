@@ -48,3 +48,25 @@ type ContextFile struct {
 	Description string // Description of what this file contains/provides
 	Type        string // Type of context (e.g., "types", "utils", "constants")
 }
+
+// Example represents a single test example configuration
+type Example struct {
+	Name        string `json:"name"`
+	Type        string `json:"type"`
+	FilePath    string `json:"file_path"`
+	Description string `json:"description"`
+}
+
+// Settings represents global configuration settings
+type Settings struct {
+	DefaultTestDirectory string   `json:"default_test_directory"`
+	Language             string   `json:"language"`
+	TestRunner           string   `json:"test_runner"`
+	ExcludedDirs         []string `json:"excluded_dirs"`
+	ExcludedFiles        []string `json:"excluded_files"`
+}
+
+// Context represents additional files to be used as context for test generation
+type Context struct {
+	Files []ContextFile `json:"files"`
+}

@@ -9,10 +9,10 @@ import (
 	"github.com/gwkline/artestian/types"
 )
 
-func (g *TestGenerator) GenerateNextTest(projectDir, rootDir string, excludeDirs []string) error {
-	slog.Debug("finding next file that needs tests", "rootDir", rootDir)
+func (g *TestGenerator) GenerateNextTest(projectDir string, cfg types.IConfig) error {
+	slog.Debug("finding next file that needs tests", "rootDir", cfg.GetRootDir())
 
-	sourcePath, err := g.finder.FindNextFile(rootDir, excludeDirs)
+	sourcePath, err := g.finder.FindNextFile(cfg)
 	if err != nil {
 		slog.Error("failed to find next file", "error", err)
 		return fmt.Errorf("error finding file: %w", err)

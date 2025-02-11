@@ -7,6 +7,15 @@ type IAgent interface {
 	PickExample(sourceCode string, testExamples []TestExample) (TestExample, error)
 }
 
+type IConfig interface {
+	GetRootDir() string
+	GetExcludedDirs() []string
+	GetExcludedFiles() []string
+	GetLanguage() string
+	LoadExamples() ([]TestExample, error)
+	LoadContextFiles() ([]ContextFile, error)
+}
+
 // TestRunner interface for different test frameworks
 type ITestRunner interface {
 	GetName() string
@@ -15,7 +24,7 @@ type ITestRunner interface {
 
 // FileFinder interface for finding files that need tests
 type IFileFinder interface {
-	FindNextFile(rootDir string, excludeDirs []string) (string, error)
+	FindNextFile(cfg IConfig) (string, error)
 	GetTestPath(sourcePath string) string
 }
 

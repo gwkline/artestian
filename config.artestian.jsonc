@@ -51,6 +51,10 @@
     "settings": {
         "default_test_directory": "./pkg",
         "language": "go",
-        "test_runner": "go test"
+        "test_runner": "go test",
+        "excluded_dirs": [],
+        "excluded_files": [
+            "base.go"
+        ]
     }
 }

@@ -6,10 +6,16 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/gwkline/artestian/types"
 )
 
-func (f *FileFinder) FindNextFile(rootDir string, excludeDirs []string) (string, error) {
-	slog.Debug("starting file search", "rootDir", rootDir, "excludeDirs", excludeDirs)
+func (f *FileFinder) FindNextFile(cfg types.IConfig) (string, error) {
+	rootDir := cfg.GetRootDir()
+	excludeDirs := cfg.GetExcludedDirs()
+	exludedFileNames := cfg.GetExcludedFiles()
+
+	slog.Debug("starting file search", "rootDir", rootDir, "excludeDirs", excludeDirs, "excludedFileNames", exludedFileNames)
 	var eligibleFiles []string
 
 	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
@@ -61,6 +67,14 @@ func (f *FileFinder) FindNextFile(rootDir string, excludeDirs []string) (string,
 			return nil
 		}
 
+		// Skip if file name matches any excluded file pattern
+		for _, excludedFile := range exludedFileNames {
+			if strings.HasSuffix(filepath.Base(path), excludedFile) {
+				slog.Debug("skipping excluded file", "path", path)
+				return nil
+			}
+		}
+
 		// Add eligible file to the list
 		eligibleFiles = append(eligibleFiles, path)
 		return nil
@@ -78,6 +92,7 @@ func (f *FileFinder) FindNextFile(rootDir string, excludeDirs []string) (string,
 
 	slog.Debug("eligible files", "files", eligibleFiles)
 	slog.Debug("exclude dirs", "dirs", excludeDirs)
+	slog.Debug("excluded file names", "names", exludedFileNames)
 
 	// Randomly select one of the eligible files
 	selectedFile := eligibleFiles[rand.Intn(len(eligibleFiles))]

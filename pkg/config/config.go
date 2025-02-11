@@ -11,36 +11,6 @@ import (
 	"github.com/gwkline/artestian/types"
 )
 
-// Config represents the complete configuration for Artestian
-type Config struct {
-	Version  string    `json:"version"`
-	Examples []Example `json:"examples"`
-	Settings Settings  `json:"settings"`
-	Context  Context   `json:"context"`
-	basePath string
-}
-
-// Example represents a single test example configuration
-type Example struct {
-	Name        string `json:"name"`
-	Type        string `json:"type"`
-	FilePath    string `json:"file_path"`
-	Description string `json:"description"`
-}
-
-// Settings represents global configuration settings
-type Settings struct {
-	DefaultTestDirectory string   `json:"default_test_directory"`
-	Language             string   `json:"language"`
-	TestRunner           string   `json:"test_runner"`
-	ExcludedDirs         []string `json:"excluded_dirs"`
-}
-
-// Context represents additional files to be used as context for test generation
-type Context struct {
-	Files []ContextFile `json:"files"`
-}
-
 // ContextFile represents a single context file with metadata
 type ContextFile struct {
 	Path        string `json:"path"`
@@ -53,6 +23,14 @@ type Language string
 
 // TestRunner represents a supported test runner
 type TestRunner string
+
+type Config struct {
+	Version  string          `json:"version"`
+	Examples []types.Example `json:"examples"`
+	Settings types.Settings  `json:"settings"`
+	Context  types.Context   `json:"context"`
+	basePath string
+}
 
 const (
 	TypeScript Language = "typescript"
@@ -98,7 +76,7 @@ func IsValidTestRunner(lang Language, runner TestRunner) bool {
 }
 
 // LoadConfig loads and validates the configuration from a file
-func LoadConfig(configPath string) (*Config, error) {
+func LoadConfig(configPath string) (types.IConfig, error) {
 	if configPath == "" {
 		return nil, fmt.Errorf("config path is required")
 	}
@@ -268,6 +246,16 @@ func validateConfig(config *Config) error {
 		config.Settings.ExcludedDirs[i] = dir
 	}
 
+	// Validate excluded files
+	for i, file := range config.Settings.ExcludedFiles {
+		if file == "" {
+			return fmt.Errorf("excluded file at index %d cannot be empty", i)
+		}
+
+		// Remove leading ./ if present
+		config.Settings.ExcludedFiles[i] = strings.TrimPrefix(file, "./")
+	}
+
 	// Language validation
 	if config.Settings.Language != "" {
 		if !IsValidLanguage(config.Settings.Language) {
@@ -414,4 +402,12 @@ func (c *Config) LoadContextFiles() ([]types.ContextFile, error) {
 	}
 
 	return files, nil
+}
+
+// GetExcludedFiles returns the list of excluded file patterns
+func (c *Config) GetExcludedFiles() []string {
+	if len(c.Settings.ExcludedFiles) == 0 {
+		return nil
+	}
+	return c.Settings.ExcludedFiles
 }
