@@ -132,9 +132,10 @@ func generateTests(cfg *config.Config, lang types.ILanguage, examples []types.Te
 	testGen := generator.NewTestGenerator(fileFinder, aiClient, lang, examples, contextFiles)
 
 	rootDir := cfg.GetRootDir()
+	excludedDirs := cfg.GetExcludedDirs()
 
 	slog.Debug("generating next test", "rootDir", rootDir)
-	if err := testGen.GenerateNextTest(*dir, rootDir); err != nil {
+	if err := testGen.GenerateNextTest(*dir, rootDir, excludedDirs); err != nil {
 		slog.Error("failed to generate test", "error", err)
 		return fmt.Errorf("error generating test: %w", err)
 	}

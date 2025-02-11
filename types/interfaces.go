@@ -15,7 +15,7 @@ type ITestRunner interface {
 
 // FileFinder interface for finding files that need tests
 type IFileFinder interface {
-	FindNextFile(rootDir string) (string, error)
+	FindNextFile(rootDir string, excludeDirs []string) (string, error)
 	GetTestPath(sourcePath string) string
 }
 
