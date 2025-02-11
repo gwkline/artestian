@@ -69,7 +69,7 @@ func run() error {
 	return generateTests(cfg, lang, examples, contextFiles, agent)
 }
 
-func loadConfiguration(dirPath string) (*config.Config, error) {
+func loadConfiguration(dirPath string) (types.IConfig, error) {
 	slog.Debug("loading configuration", "path", dirPath)
 	cfg, err := config.LoadConfig(dirPath)
 	if err != nil {
@@ -78,7 +78,7 @@ func loadConfiguration(dirPath string) (*config.Config, error) {
 	return cfg, nil
 }
 
-func loadTestResources(cfg *config.Config) ([]types.TestExample, []types.ContextFile, error) {
+func loadTestResources(cfg types.IConfig) ([]types.TestExample, []types.ContextFile, error) {
 	slog.Debug("loading test examples from config")
 	examples, err := cfg.LoadExamples()
 	if err != nil {
@@ -97,7 +97,7 @@ func loadTestResources(cfg *config.Config) ([]types.TestExample, []types.Context
 	return examples, contextFiles, nil
 }
 
-func initializeLanguage(cfg *config.Config) (types.ILanguage, error) {
+func initializeLanguage(cfg types.IConfig) (types.ILanguage, error) {
 	slog.Debug("initializing language support", "language", cfg.GetLanguage())
 	switch cfg.GetLanguage() {
 	case "typescript":
@@ -124,18 +124,15 @@ func initializeAIProvider(provider string) (types.IAgent, error) {
 	}
 }
 
-func generateTests(cfg *config.Config, lang types.ILanguage, examples []types.TestExample, contextFiles []types.ContextFile, aiClient types.IAgent) error {
+func generateTests(cfg types.IConfig, lang types.ILanguage, examples []types.TestExample, contextFiles []types.ContextFile, aiClient types.IAgent) error {
 	slog.Debug("initializing file finder")
 	fileFinder := finder.NewFileFinder(lang)
 
 	slog.Debug("initializing test generator")
 	testGen := generator.NewTestGenerator(fileFinder, aiClient, lang, examples, contextFiles)
 
-	rootDir := cfg.GetRootDir()
-	excludedDirs := cfg.GetExcludedDirs()
-
-	slog.Debug("generating next test", "rootDir", rootDir)
-	if err := testGen.GenerateNextTest(*dir, rootDir, excludedDirs); err != nil {
+	slog.Debug("generating next test", "rootDir", cfg.GetRootDir())
+	if err := testGen.GenerateNextTest(*dir, cfg); err != nil {
 		slog.Error("failed to generate test", "error", err)
 		return fmt.Errorf("error generating test: %w", err)
 	}
