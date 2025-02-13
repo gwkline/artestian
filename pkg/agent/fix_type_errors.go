@@ -25,11 +25,15 @@ Here's the current test code:
 
 %s
 
+Which are found in the directory:
+
+%s
+
 Here are the relevant context files:
 
 %s
 
-Return ONLY the fixed test code, no explanations.`, params.Errors, params.TestCode, contextSection.String())
+Return ONLY the fixed test code, no explanations.`, params.Errors, params.TestCode, params.TestDir, contextSection.String())
 
 	slog.Info("sending request to Anthropic API",
 		"promptId", "fix_type_errors",
@@ -45,6 +49,9 @@ Return ONLY the fixed test code, no explanations.`, params.Errors, params.TestCo
 	})
 
 	if err != nil {
+		if err := p.logger.Log("fix_type_errors", prompt, ""); err != nil {
+			slog.Warn("failed to log prompt", "error", err)
+		}
 		slog.Error("failed to fix type errors with Anthropic API", "error", err)
 		return "", fmt.Errorf("failed to fix type errors: %w", err)
 	}

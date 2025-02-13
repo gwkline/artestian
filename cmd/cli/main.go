@@ -12,8 +12,9 @@ import (
 	"github.com/gwkline/artestian/pkg/config"
 	"github.com/gwkline/artestian/pkg/finder"
 	"github.com/gwkline/artestian/pkg/generator"
-	"github.com/gwkline/artestian/pkg/languages"
+	"github.com/gwkline/artestian/pkg/golang"
 	"github.com/gwkline/artestian/pkg/prompt_logger"
+	"github.com/gwkline/artestian/pkg/typescript"
 	"github.com/gwkline/artestian/types"
 
 	"github.com/joho/godotenv"
@@ -101,16 +102,16 @@ func initializeLanguage(cfg types.IConfig) (types.ILanguage, error) {
 	slog.Debug("initializing language support", "language", cfg.GetLanguage())
 	switch cfg.GetLanguage() {
 	case "typescript":
-		return languages.NewTypeScriptSupport(), nil
+		return typescript.NewTypeScriptSupport(), nil
 	case "go":
-		return languages.NewGoSupport(), nil
+		return golang.NewGoSupport(), nil
 	default:
 		return nil, fmt.Errorf("unsupported language: %s", cfg.GetLanguage())
 	}
 }
 
 func initializeAIProvider(provider string) (types.IAgent, error) {
-	logger, err := prompt_logger.Init(false)
+	logger, err := prompt_logger.Init(true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create prompt logger: %w", err)
 	}

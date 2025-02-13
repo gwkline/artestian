@@ -35,6 +35,7 @@ type ILanguage interface {
 	GetFileExtension() string
 	GetTestFilePattern() string
 	CheckTypes(testFilePath string) (bool, string, error)
+	GetFunctions(sourceCode string) ([]Function, error)
 }
 
 type IPromptLogger interface {

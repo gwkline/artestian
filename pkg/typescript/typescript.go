@@ -1,4 +1,4 @@
-package languages
+package typescript
 
 import (
 	"os/exec"

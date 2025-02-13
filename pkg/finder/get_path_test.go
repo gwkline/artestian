@@ -3,7 +3,8 @@ package finder
 import (
 	"testing"
 
-	"github.com/gwkline/artestian/pkg/languages"
+	"github.com/gwkline/artestian/pkg/golang"
+	"github.com/gwkline/artestian/pkg/typescript"
 	"github.com/gwkline/artestian/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,28 +22,28 @@ func TestGetTestPath(t *testing.T) {
 			sourcePath:   "/path/to/source.go",
 			filePattern:  "_test.go",
 			expectedPath: "/path/to/source_test.go",
-			language:     languages.NewGoSupport(),
+			language:     golang.NewGoSupport(),
 		},
 		{
 			name:         "converts .ts file to .test.ts",
 			sourcePath:   "/path/to/source.ts",
 			filePattern:  ".test.ts",
 			expectedPath: "/path/to/source.test.ts",
-			language:     languages.NewTypeScriptSupport(),
+			language:     typescript.NewTypeScriptSupport(),
 		},
 		{
 			name:         "handles paths with no extension",
 			sourcePath:   "/path/to/source",
 			filePattern:  "_test.go",
 			expectedPath: "/path/to/source_test.go",
-			language:     languages.NewGoSupport(),
+			language:     golang.NewGoSupport(),
 		},
 		{
 			name:         "handles paths with multiple dots",
 			sourcePath:   "/path/to/source.handler.go",
 			filePattern:  "_test.go",
 			expectedPath: "/path/to/source.handler_test.go",
-			language:     languages.NewGoSupport(),
+			language:     golang.NewGoSupport(),
 		},
 	}
 

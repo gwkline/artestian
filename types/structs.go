@@ -28,6 +28,7 @@ type GenerateTestParams struct {
 	TestRunner   ITestRunner
 	TestDir      string
 	ContextFiles []ContextFile // Additional context files for test generation
+	Function     Function      // Function to generate a test for
 }
 
 type IterateTestParams struct {
@@ -69,4 +70,10 @@ type Settings struct {
 // Context represents additional files to be used as context for test generation
 type Context struct {
 	Files []ContextFile `json:"files"`
+}
+
+type Function struct {
+	Name       string
+	SourceCode string
+	IsExported bool
 }
