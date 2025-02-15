@@ -1,8 +1,12 @@
-package languages
+package golang
 
 import (
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/gwkline/artestian/types"
 )
@@ -61,4 +65,34 @@ func (g *GoSupport) CheckTypes(testFilePath string) (bool, string, error) {
 
 func (g *GoSupport) GetName() string {
 	return "go"
+}
+
+func (g *GoSupport) GetFunctions(sourceCode string) ([]types.Function, error) {
+	fset := token.NewFileSet()
+	file, err := parser.ParseFile(fset, "", sourceCode, parser.ParseComments)
+	if err != nil {
+		return nil, err
+	}
+
+	var functions []types.Function
+	ast.Inspect(file, func(n ast.Node) bool {
+		if funcDecl, ok := n.(*ast.FuncDecl); ok {
+			// Get the function source code
+			startPos := fset.Position(funcDecl.Pos())
+			endPos := fset.Position(funcDecl.End())
+			lines := strings.Split(sourceCode, "\n")
+			funcSource := strings.Join(lines[startPos.Line-1:endPos.Line], "\n")
+
+			// Create Function struct
+			function := types.Function{
+				Name:       funcDecl.Name.Name,
+				SourceCode: funcSource,
+				IsExported: funcDecl.Name.IsExported(),
+			}
+			functions = append(functions, function)
+		}
+		return true
+	})
+
+	return functions, nil
 }

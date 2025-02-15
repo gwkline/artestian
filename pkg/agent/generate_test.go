@@ -4,7 +4,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/gwkline/artestian/pkg/languages"
+	"github.com/gwkline/artestian/pkg/golang"
 	"github.com/gwkline/artestian/pkg/prompt_logger"
 	"github.com/gwkline/artestian/types"
 	"github.com/joho/godotenv"
@@ -37,8 +37,8 @@ func Multiply(a int, b int) int {
 						Content:     "test content",
 					},
 				},
-				Language:   languages.NewGoSupport(),
-				TestRunner: &languages.GoTestRunner{},
+				Language:   golang.NewGoSupport(),
+				TestRunner: &golang.GoTestRunner{},
 			},
 		},
 	}

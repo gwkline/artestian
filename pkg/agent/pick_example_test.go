@@ -89,3 +89,60 @@ func TestAdd(t *testing.T) {
 		})
 	}
 }
+
+func TestParseExampleIndex(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   string
+		want    int
+		wantErr bool
+	}{
+		{
+			name:    "simple digit",
+			input:   "0",
+			want:    0,
+			wantErr: false,
+		},
+		{
+			name:    "digit with json closing",
+			input:   "1}",
+			want:    1,
+			wantErr: false,
+		},
+		{
+			name:    "digit with json closing and space",
+			input:   "2 }",
+			want:    2,
+			wantErr: false,
+		},
+		{
+			name:    "full json format",
+			input:   `{"exampleIndex":3}`,
+			want:    3,
+			wantErr: false,
+		},
+		{
+			name:    "invalid input - letters",
+			input:   "abc",
+			wantErr: true,
+		},
+		{
+			name:    "invalid input - empty",
+			input:   "",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseExampleIndex(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("parseExampleIndex() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && got != tt.want {
+				t.Errorf("parseExampleIndex() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

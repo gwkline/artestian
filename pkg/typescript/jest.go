@@ -1,17 +1,14 @@
-package languages
+package typescript
 
 import (
 	"os/exec"
-	"path/filepath"
 )
 
 type JestRunner struct{}
 
 func (r *JestRunner) RunTests(rootDir, testFilePath string) (bool, string, error) {
-	dir := filepath.Dir(rootDir)
-
 	cmd := exec.Command("npx", "jest", testFilePath, "--no-cache")
-	cmd.Dir = dir
+	cmd.Dir = rootDir
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {

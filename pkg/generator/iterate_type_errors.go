@@ -9,9 +9,9 @@ import (
 	"github.com/gwkline/artestian/types"
 )
 
-func (g *TestGenerator) iterateTypeErrors(testPath, testCode string) (string, error) {
+func (g *TestGenerator) iterateTypeErrors(sourceCode, testPath, testCode string) (string, error) {
 	var attempts []types.ErrorAttempt
-	maxTypeAttempts := 3
+	maxTypeAttempts := 5
 
 	for i := 0; i < maxTypeAttempts; i++ {
 		slog.Debug("checking types", "attempt", i+1, "path", testPath)
@@ -32,7 +32,7 @@ func (g *TestGenerator) iterateTypeErrors(testPath, testCode string) (string, er
 
 		slog.Info("fixing type errors", "attempt", i+1)
 		fixedCode, err := g.ai.FixTypeErrors(types.IterateTestParams{
-			SourceCode:   testCode,
+			SourceCode:   sourceCode,
 			TestCode:     testCode,
 			Errors:       strings.Split(typeErrors, "\n"),
 			ContextFiles: g.contextFiles,

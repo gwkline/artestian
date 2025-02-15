@@ -31,7 +31,11 @@ func (p *AnthropicProvider) GenerateTest(params types.GenerateTestParams) (strin
 
 Return ONLY the test code, no explanations.
 
-Given this source code:
+You are specifically generating a test for the following function:
+
+%s
+
+Which is part of this source code file:
 
 %s
 
@@ -44,6 +48,7 @@ And these context files:
 %s`,
 		params.Language.GetName(),
 		params.TestRunner.GetName(),
+		params.Function.Name,
 		params.TestDir,
 		params.SourceCode,
 		params.Example.Content,

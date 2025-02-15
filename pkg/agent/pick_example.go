@@ -2,12 +2,15 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/gwkline/artestian/types"
 )
+
+const assistantMessage = `{"exampleIndex":`
 
 func (p *AnthropicProvider) PickExample(sourceCode string, testExamples []types.TestExample) (types.TestExample, error) {
 	if len(testExamples) == 0 {
@@ -33,7 +36,6 @@ Return a JSON object with the key "exampleIndex" and the value being the index n
 		"promptId", "pick_example",
 		"model", anthropic.ModelClaude3_5SonnetLatest,
 		"maxTokens", MAX_TOKENS)
-	const assistantMessage = `{"exampleIndex":`
 
 	msg, err := p.client.Messages.New(context.Background(), anthropic.MessageNewParams{
 		Model:     anthropic.F(anthropic.ModelClaude3_5SonnetLatest),
@@ -50,16 +52,10 @@ Return a JSON object with the key "exampleIndex" and the value being the index n
 	}
 
 	response := msg.Content[0].Text
-	var selectedIndex int
-	if len(response) > 0 && response[0] >= '0' && response[0] <= '9' {
-		// If response starts with a digit, parse just that number
-		_, err = fmt.Sscanf(response, "%d", &selectedIndex)
-	} else {
-		// Otherwise try to parse after the suggested format
-		_, err = fmt.Sscanf(response[len(assistantMessage):], "%d", &selectedIndex)
-	}
-	if err != nil || selectedIndex < 0 || selectedIndex >= len(testExamples) {
-		return types.TestExample{}, fmt.Errorf("invalid example index returned")
+
+	selectedIndex, err := parseExampleIndex(response)
+	if err != nil {
+		return types.TestExample{}, fmt.Errorf("failed to parse example index: %w", err)
 	}
 
 	if err := p.logger.Log("pick_example", prompt, msg.Content[0].Text); err != nil {
@@ -69,4 +65,23 @@ Return a JSON object with the key "exampleIndex" and the value being the index n
 	slog.Info("selected test example", "name", testExamples[selectedIndex].Name, "type", testExamples[selectedIndex].Type)
 
 	return testExamples[selectedIndex], nil
+}
+
+func parseExampleIndex(response string) (int, error) {
+	// Try to parse as a simple JSON object first
+	var jsonResponse struct {
+		ExampleIndex int `json:"exampleIndex"`
+	}
+	if err := json.Unmarshal([]byte(response), &jsonResponse); err == nil {
+		return jsonResponse.ExampleIndex, nil
+	}
+
+	// If not JSON, try to extract the first number from the string
+	var selectedIndex int
+	_, err := fmt.Sscanf(response, "%d", &selectedIndex)
+	if err != nil {
+		return 0, fmt.Errorf("invalid example index returned")
+	}
+
+	return selectedIndex, nil
 }
