@@ -1,0 +1,30 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          cache-dependency-path: "go.sum"
+          go-version-file: "go.mod"
+
+      - name: Install dependencies
+        working-directory: ./cmd/cli
+        run: go get .
+
+      - name: Test with the Go CLI
+        run: go test ./... -short
