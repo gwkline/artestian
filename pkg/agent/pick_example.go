@@ -17,6 +17,21 @@ func (p *AnthropicProvider) PickExample(sourceCode string, testExamples []types.
 		return types.TestExample{}, fmt.Errorf("no test examples provided")
 	}
 
+	type TruncatedExample struct {
+		Name        string
+		Type        types.TestType
+		Description string
+	}
+
+	truncatedExamples := make([]TruncatedExample, len(testExamples))
+	for i, example := range testExamples {
+		truncatedExamples[i] = TruncatedExample{
+			Name:        example.Name,
+			Type:        example.Type,
+			Description: example.Description,
+		}
+	}
+
 	prompt := fmt.Sprintf(`Given this source code:
 
 %s
@@ -30,9 +45,10 @@ Which test example would be the best match for testing this code? Consider:
 2. The testing patterns demonstrated in each example
 3. The similarity between the example and what needs to be tested
 
-Return a JSON object with the key "exampleIndex" and the value being the index number (0-based) of the best matching example. Do not include any other text or explanations in your response.`, sourceCode, testExamples)
+Return a JSON object with the key "exampleIndex" and the value being the index number of the best matching example. 
+Do not include any other text or explanations in your response.`, sourceCode, truncatedExamples)
 
-	slog.Info("sending request to Anthropic API",
+	slog.Info("completion started",
 		"promptId", "pick_example",
 		"model", anthropic.ModelClaude3_5SonnetLatest,
 		"maxTokens", MAX_TOKENS)

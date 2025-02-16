@@ -10,23 +10,24 @@ import (
 	"github.com/gwkline/artestian/types"
 )
 
-func (p *AnthropicProvider) FixTypeErrors(params types.IterateTestParams) (string, error) {
-	xmlParams, err := prompt_utils.StructToXMLString(params)
+func (p *AnthropicProvider) FixTestFailures(params types.IterateTestParams) (string, error) {
+	xmlString, err := prompt_utils.StructToXMLString(params)
 	if err != nil {
 		return "", fmt.Errorf("failed to format params: %w", err)
 	}
 
-	prompt := fmt.Sprintf(`Fix the type errors in this test. 
+	prompt := fmt.Sprintf(`Fix the test failures in this code.
+
 Here are some reminders:
 - Use the conventions and types of the language you're writing the test in
-- Use the provided context and examples to help you fix the errors
+- Use the provided context and examples to help you fix the failures
 
 %s
 
-Return ONLY the fixed test code, no explanations.`, xmlParams)
+Return ONLY the fixed test code, no explanations.`, xmlString)
 
 	slog.Info("completion started",
-		"promptId", "fix_type_errors",
+		"promptId", "fix_test_failures",
 		"model", anthropic.ModelClaude3_5SonnetLatest,
 		"maxTokens", MAX_TOKENS)
 
@@ -40,17 +41,16 @@ Return ONLY the fixed test code, no explanations.`, xmlParams)
 	})
 
 	if err != nil {
-		if err := p.logger.Log("fix_type_errors", prompt, ""); err != nil {
+		if err := p.logger.Log("fix_test_failures", prompt, ""); err != nil {
 			slog.Warn("failed to log prompt", "error", err)
 		}
-		slog.Error("failed to fix type errors with Anthropic API", "error", err)
-		return "", fmt.Errorf("failed to fix type errors: %w", err)
+		slog.Error("failed to fix test errors with Anthropic API", "error", err)
+		return "", fmt.Errorf("failed to fix test errors: %w", err)
 	}
 
 	response := removeBackticks(fmt.Sprintf("```%s%s", params.Language.GetName(), msg.Content[0].Text))
 
-	// Log the prompt and response
-	if err := p.logger.Log("fix_type_errors", prompt, response); err != nil {
+	if err := p.logger.Log("fix_test_errors", prompt, response); err != nil {
 		slog.Warn("failed to log prompt", "error", err)
 	}
 

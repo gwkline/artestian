@@ -24,6 +24,7 @@ var (
 	dir        = flag.String("dir", "", "Path to project root")
 	aiProvider = flag.String("ai", "anthropic", "AI provider to use (currently only anthropic is supported)")
 	logLevel   = flag.String("log-level", "info", "Log level (debug, info, warn, error)")
+	numGens    = flag.Int("generations", 1, "Number of test generations to run (use -1 for infinite)")
 )
 
 func main() {
@@ -72,7 +73,7 @@ func run() error {
 
 func loadConfiguration(dirPath string) (types.IConfig, error) {
 	slog.Debug("loading configuration", "path", dirPath)
-	cfg, err := config.LoadConfig(dirPath)
+	cfg, err := config.Init(dirPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load configuration: %w", err)
 	}
@@ -132,12 +133,22 @@ func generateTests(cfg types.IConfig, lang types.ILanguage, examples []types.Tes
 	slog.Debug("initializing test generator")
 	testGen := generator.NewTestGenerator(fileFinder, aiClient, lang, examples, contextFiles)
 
-	slog.Debug("generating next test", "rootDir", cfg.GetRootDir())
-	if err := testGen.GenerateNextTest(*dir, cfg); err != nil {
-		slog.Error("failed to generate test", "error", err)
-		return fmt.Errorf("error generating test: %w", err)
+	genCount := 0
+	for *numGens == -1 || genCount < *numGens {
+		slog.Info("starting test generation", "iteration", genCount+1)
+		err := testGen.GenerateNextTest(*dir, cfg)
+		if err != nil {
+			if err.Error() == "no files found needing tests" {
+				slog.Info("no more files need tests, stopping generation")
+				break
+			}
+			slog.Error("failed to generate test", "error", err)
+			return fmt.Errorf("error generating test: %w", err)
+		}
+		genCount++
 	}
 
+	slog.Info("completed requested number of generations", "count", genCount)
 	return nil
 }
 

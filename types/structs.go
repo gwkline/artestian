@@ -12,7 +12,7 @@ const (
 type TestExample struct {
 	Name        string
 	Type        TestType
-	Content     string
+	SourceCode  string
 	Description string
 }
 
@@ -22,24 +22,20 @@ type ErrorAttempt struct {
 }
 
 type GenerateTestParams struct {
-	SourceCode   string
-	Example      TestExample
-	Language     ILanguage
-	TestRunner   ITestRunner
-	TestDir      string
-	ContextFiles []ContextFile // Additional context files for test generation
-	Function     Function      // Function to generate a test for
+	Language       ILanguage
+	TestRunner     ITestRunner
+	TestPath       string
+	Function       Function // Function to generate a test for
+	SourceCode     string
+	SourceCodePath string
+	Example        TestExample
+	ContextFiles   []ContextFile // Additional context files for test generation
 }
 
 type IterateTestParams struct {
-	SourceCode   string
-	TestCode     string
-	Errors       []string
-	Example      TestExample
-	Language     ILanguage
-	TestRunner   ITestRunner
-	TestDir      string
-	ContextFiles []ContextFile // Additional context files for test generation
+	Errors   []string
+	TestCode string
+	GenerateTestParams
 }
 
 // ContextFile represents a file that provides additional context for test generation

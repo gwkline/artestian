@@ -75,11 +75,13 @@ func TestAddition(t *testing.T) {
 			assert.NoError(t, err)
 
 			// Execute
-			result, err := provider.FixTestErrors(types.IterateTestParams{
-				SourceCode:   tt.sourceCode,
-				TestCode:     tt.testCode,
-				Errors:       []string{tt.testErrors},
-				ContextFiles: tt.contextFiles,
+			result, err := provider.FixTestFailures(types.IterateTestParams{
+				GenerateTestParams: types.GenerateTestParams{
+					SourceCode:   tt.sourceCode,
+					ContextFiles: tt.contextFiles,
+				},
+				TestCode: tt.testCode,
+				Errors:   []string{tt.testErrors},
 			})
 
 			// Assert

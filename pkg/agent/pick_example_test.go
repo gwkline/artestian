@@ -32,7 +32,7 @@ func Add(a, b int) int {
 				{
 					Name: "Simple Unit Test",
 					Type: types.TestTypeUnit,
-					Content: `
+					SourceCode: `
 func TestAdd(t *testing.T) {
     result := Add(2, 3)
     assert.Equal(t, 5, result)
@@ -42,7 +42,7 @@ func TestAdd(t *testing.T) {
 				{
 					Name: "Complex Integration Test",
 					Type: types.TestTypeIntegration,
-					Content: `
+					SourceCode: `
 func TestComplexScenario(t *testing.T) {
     // Complex test setup
 }`,
@@ -52,7 +52,7 @@ func TestComplexScenario(t *testing.T) {
 			expected: types.TestExample{
 				Name: "Simple Unit Test",
 				Type: types.TestTypeUnit,
-				Content: `
+				SourceCode: `
 func TestAdd(t *testing.T) {
     result := Add(2, 3)
     assert.Equal(t, 5, result)
