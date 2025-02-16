@@ -9,7 +9,7 @@ import (
 	"github.com/gwkline/artestian/types"
 )
 
-var MAX_TOKENS = 2000
+var MAX_TOKENS = 8192
 
 type AnthropicProvider struct {
 	client *anthropic.Client

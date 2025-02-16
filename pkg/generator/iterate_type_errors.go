@@ -9,13 +9,13 @@ import (
 	"github.com/gwkline/artestian/types"
 )
 
-func (g *TestGenerator) iterateTypeErrors(sourceCode, testPath, testCode string) (string, error) {
+func (g *TestGenerator) iterateTypeErrors(params types.GenerateTestParams, testCode string) (string, error) {
 	var attempts []types.ErrorAttempt
 	maxTypeAttempts := 5
 
 	for i := 0; i < maxTypeAttempts; i++ {
-		slog.Debug("checking types", "attempt", i+1, "path", testPath)
-		ok, typeErrors, err := g.language.CheckTypes(testPath)
+		slog.Debug("checking types", "attempt", i+1, "path", params.TestPath)
+		ok, typeErrors, err := g.language.CheckTypes(params.TestPath)
 		if err != nil {
 			return "", fmt.Errorf("error checking types: %w", err)
 		}
@@ -32,17 +32,16 @@ func (g *TestGenerator) iterateTypeErrors(sourceCode, testPath, testCode string)
 
 		slog.Info("fixing type errors", "attempt", i+1)
 		fixedCode, err := g.ai.FixTypeErrors(types.IterateTestParams{
-			SourceCode:   sourceCode,
-			TestCode:     testCode,
-			Errors:       strings.Split(typeErrors, "\n"),
-			ContextFiles: g.contextFiles,
+			GenerateTestParams: params,
+			TestCode:           testCode,
+			Errors:             strings.Split(typeErrors, "\n"),
 		})
 		if err != nil {
 			return "", fmt.Errorf("error fixing type errors: %w", err)
 		}
 
 		testCode = fixedCode
-		if err := os.WriteFile(testPath, []byte(testCode), 0644); err != nil {
+		if err := os.WriteFile(params.TestPath, []byte(testCode), 0644); err != nil {
 			return "", fmt.Errorf("error writing fixed test file: %w", err)
 		}
 	}

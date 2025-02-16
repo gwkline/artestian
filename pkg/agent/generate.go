@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/anthropics/anthropic-sdk-go"
+	"github.com/gwkline/artestian/pkg/prompt_utils"
 	"github.com/gwkline/artestian/types"
 )
 
@@ -16,45 +17,23 @@ func (p *AnthropicProvider) GenerateTest(params types.GenerateTestParams) (strin
 		"exampleType", params.Example.Type,
 		"sourceCodeLength", len(params.SourceCode))
 
-	// Format context files section
-	var contextSection strings.Builder
-	for _, cf := range params.ContextFiles {
-		contextSection.WriteString(fmt.Sprintf("\n=== %s (%s) ===\n%s\n", cf.Description, cf.Type, cf.Content))
+	xmlParams, err := prompt_utils.StructToXMLString(params)
+	if err != nil {
+		return "", fmt.Errorf("failed to format params: %w", err)
 	}
 
-	prompt := fmt.Sprintf(`Generate a similar test for the source code below. The test should:
-1. Follow the same/similar patterns as the example
-2. You should almost never use mocks, ideally only external API calls should be mocked
-3. Use %s and %s to write the test
-4. Include all necessary imports, the current working directory is %s
-5. Follow best practices for testing
+	prompt := fmt.Sprintf(`Generate a test for the function provided. 
+The test should:
+	1. Follow the same/similar patterns as the example
+	2. Focus on testing the core functionality and happy path. Don't waste time testing unlikely edge cases or invalid inputs
+	3. You should basically never use mocks, except for external API calls
+	4. Use the supplied language and test runner to write the test
+	5. Include all necessary imports, the current working directory is %s
 
 Return ONLY the test code, no explanations.
 
-You are specifically generating a test for the following function:
-
-%s
-
-Which is part of this source code file:
-
-%s
-
-And this example test as reference:
-
-%s
-
-And these context files:
-
-%s`,
-		params.Language.GetName(),
-		params.TestRunner.GetName(),
-		params.Function.Name,
-		params.TestDir,
-		params.SourceCode,
-		params.Example.Content,
-		contextSection.String())
-
-	slog.Info("sending request to Anthropic API",
+%s`, params.TestPath, xmlParams)
+	slog.Info("completion started",
 		"promptId", "generate_test",
 		"model", anthropic.ModelClaude3_5SonnetLatest,
 		"maxTokens", MAX_TOKENS)
@@ -64,15 +43,19 @@ And these context files:
 		MaxTokens: anthropic.F(int64(MAX_TOKENS)),
 		Messages: anthropic.F([]anthropic.MessageParam{
 			anthropic.NewUserMessage(anthropic.NewTextBlock(prompt)),
+			anthropic.NewAssistantMessage(anthropic.NewTextBlock(fmt.Sprintf("```%s", params.Language.GetName()))),
 		}),
 	})
 
 	if err != nil {
+		if err := p.logger.Log("generate_test", prompt, ""); err != nil {
+			slog.Warn("failed to log prompt", "error", err)
+		}
 		slog.Error("failed to generate test with Anthropic API", "error", err)
 		return "", fmt.Errorf("failed to generate test: %w", err)
 	}
 
-	response := removeBackticks(msg.Content[0].Text)
+	response := removeBackticks(fmt.Sprintf("```%s%s", params.Language.GetName(), msg.Content[0].Text))
 
 	// Log the prompt and response
 	if err := p.logger.Log("generate_test", prompt, response); err != nil {

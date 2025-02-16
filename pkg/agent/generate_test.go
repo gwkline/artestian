@@ -30,9 +30,9 @@ func Multiply(a int, b int) int {
     return a * b
 }`,
 				Example: types.TestExample{
-					Name:    "simple unit test",
-					Type:    types.TestTypeUnit,
-					Content: "test content",
+					Name:       "simple unit test",
+					Type:       types.TestTypeUnit,
+					SourceCode: "test content",
 				},
 				ContextFiles: []types.ContextFile{
 					{

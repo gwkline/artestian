@@ -47,19 +47,6 @@ func (g *TestGenerator) GenerateNextTest(projectDir string, cfg types.IConfig) e
 
 	for _, function := range functions {
 		slog.Info("generating test for function", "function", function.Name)
-		testCode, err := g.ai.GenerateTest(types.GenerateTestParams{
-			SourceCode:   string(sourceCode),
-			Function:     function,
-			Example:      example,
-			Language:     g.language,
-			TestRunner:   g.language.GetTestRunner(),
-			TestDir:      testPath,
-			ContextFiles: g.contextFiles,
-		})
-		if err != nil {
-			slog.Error("failed to generate test", "function", function.Name, "error", err)
-			continue
-		}
 
 		// Create temp file in the test directory
 		tempFile, err := os.CreateTemp(filepath.Dir(testPath), fmt.Sprintf("%s*%s", function.Name, g.language.GetTestFilePattern()))
@@ -70,18 +57,35 @@ func (g *TestGenerator) GenerateNextTest(projectDir string, cfg types.IConfig) e
 		tempPath := tempFile.Name()
 		tempFile.Close()
 
+		params := types.GenerateTestParams{
+			Language:       g.language,
+			TestRunner:     g.language.GetTestRunner(),
+			TestPath:       tempPath,
+			Function:       function,
+			SourceCode:     string(sourceCode),
+			SourceCodePath: sourcePath,
+			Example:        example,
+			ContextFiles:   g.contextFiles,
+		}
+
+		testCode, err := g.ai.GenerateTest(params)
+		if err != nil {
+			slog.Error("failed to generate test", "function", function.Name, "error", err)
+			continue
+		}
+
 		if err := os.WriteFile(tempPath, []byte(testCode), 0644); err != nil {
 			slog.Error("failed to write temp test file", "path", tempPath, "error", err)
 			continue
 		}
 
-		testCode, err = g.iterateTypeErrors(string(sourceCode), tempPath, testCode)
+		testCode, err = g.iterateTypeErrors(params, testCode)
 		if err != nil {
 			slog.Error("error fixing type errors", "function", function.Name, "error", err)
 			continue
 		}
 
-		testCode, err = g.iterateTestFailures(projectDir, tempPath, testCode)
+		testCode, err = g.iterateTestFailures(params, testCode, projectDir)
 		if err != nil {
 			slog.Error("error fixing test errors", "function", function.Name, "error", err)
 			continue

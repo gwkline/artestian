@@ -3,7 +3,7 @@ package types
 type IAgent interface {
 	GenerateTest(params GenerateTestParams) (string, error)
 	FixTypeErrors(params IterateTestParams) (string, error)
-	FixTestErrors(params IterateTestParams) (string, error)
+	FixTestFailures(params IterateTestParams) (string, error)
 	PickExample(sourceCode string, testExamples []TestExample) (TestExample, error)
 }
 

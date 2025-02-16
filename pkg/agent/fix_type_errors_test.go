@@ -73,9 +73,11 @@ func TestAddition(t *testing.T) {
 			assert.NoError(t, err)
 
 			result, err := provider.FixTypeErrors(types.IterateTestParams{
-				TestCode:     tt.testCode,
-				Errors:       tt.errors,
-				ContextFiles: tt.contextFiles,
+				GenerateTestParams: types.GenerateTestParams{
+					ContextFiles: tt.contextFiles,
+				},
+				Errors:   tt.errors,
+				TestCode: tt.testCode,
 			})
 
 			if tt.expectedError != "" {
